@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Place ID and Business Hours Finder</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+</head>
+<body>
+    <h1>Find Google Place ID and Business Hours</h1>
+    <input id="place-name" type="text" placeholder="Enter place name or address" />
+    <button onclick="findPlaceInfo()">Find Info</button>
+
+    <div id="result"></div>
+
+    <script>
+        function findPlaceInfo() {
+            var placeName = document.getElementById('place-name').value;
+            var service = new google.maps.places.PlacesService(document.createElement('div'));
+
+            // Step 1: Find Place ID
+            service.findPlaceFromQuery({
+                query: placeName,
+                fields: ['place_id', 'name', 'formatted_address']
+            }, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                    var placeID = results[0].place_id;
+
+                    // Step 2: Fetch Place Details
+                    getPlaceDetails(placeID);
+                } else {
+                    document.getElementById('result').innerHTML = 'Place not found. Please try again.';
+                }
+            });
+        }
+
+        function getPlaceDetails(placeID) {
+            var service = new google.maps.places.PlacesService(document.createElement('div'));
+
+            service.getDetails({ placeId: placeID }, function(result, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    var placeID = result.place_id;
+                    var name = result.name;
+                    var address = result.formatted_address;
+                    var businessHours = result.opening_hours ? result.opening_hours.weekday_text : ['Not available'];
+
+                    var hoursHtml = businessHours.map(function(hour) {
+                        return `<p>${hour}</p>`;
+                    }).join('');
+
+                    document.getElementById('result').innerHTML =
+                        `<p><strong>Place ID:</strong> ${placeID}</p>
+                         <p><strong>Name:</strong> ${name}</p>
+                         <p><strong>Address:</strong> ${address}</p>
+                         <strong>Business Hours:</strong>${hoursHtml}`;
+                } else {
+                    document.getElementById('result').innerHTML = 'Details not found. Please try again.';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
